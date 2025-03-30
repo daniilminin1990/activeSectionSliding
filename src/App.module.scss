@@ -1,0 +1,26 @@
+.container {
+  display: flex;
+  flex: 1
+}
+
+.sidebar {
+  width: 200px;
+  position: sticky;
+  top: 50px; /* Укажи высоту твоего header */
+  height: calc(100vh - 50px); /* Высота экрана минус высота header */
+  overflow-y: auto; /* Если содержимое sidebar длиннее, оно будет скроллиться */
+}
+
+.mainContent {
+  background-color: lightslategrey;
+  flex: 1;
+  width: 1200px;
+}
+
+.navContent{
+  background-color: darkslategray;
+}
+
+.additionalData {
+  background-color: darkolivegreen;
+}
