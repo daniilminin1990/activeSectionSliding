@@ -41,6 +41,11 @@ const BlockItem = observer(({ block }: { block: Block }) => {
     }
   }, [intersection?.isIntersecting, block.id]);
 
+  // Обработчик клика по блоку
+  const handleBlockClick = () => {
+    navigationStore.setActiveBlockId(block.id);
+  };
+
   // Определяем стиль рамки: красный для активного блока, синий для неактивного
   const borderStyle = navigationStore.activeBlockId === block.id ? '1px solid red' : '1px solid blue';
 
@@ -49,6 +54,7 @@ const BlockItem = observer(({ block }: { block: Block }) => {
       id={`block-${block.id}`}
       ref={intersectionRef}
       style={{ height: '300px', border: borderStyle }}
+      onClick={handleBlockClick}
     >
       <h2>{block.title}</h2>
       <p>{block.content}</p>
