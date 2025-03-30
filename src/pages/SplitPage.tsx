@@ -1,21 +1,107 @@
-export const SplitPage = () => {
+import {RefObject, useEffect, useRef} from 'react';
+import { observer } from 'mobx-react-lite';
+import { useIntersection } from 'react-use';
+import { navigationStore } from '../store/navigationStore';
+import {useOutletContext} from "react-router-dom";
 
-  const blocks = [
-    'Some data block1',
-    'Some data block2',
-    'Some data block3',
-    'Some data block4',
-  ]
+type Block = {
+  id: number;
+  title: string;
+  content: string;
+};
+
+export const SplitPage = observer(() => {
+  const blocks = useOutletContext<Block[]>(); // Получаем blocks из Outlet
 
   return (
-    <>
-      {
-        blocks.map((block, index) => (
-          <div key={index} style={{height: "400px"}}>
-            Some data {block}
-          </div>
-        ))
-      }
-    </>
+    <main>
+      {blocks.map((block) => (
+        <BlockItem key={block.id} block={block} />
+      ))}
+    </main>
   );
-};
+});
+
+const BlockItem = observer(({ block }: { block: Block }) => {
+  const intersectionRef = useRef<HTMLDivElement | null>(null);
+  const intersection = useIntersection(intersectionRef as RefObject<HTMLElement>, {
+    // threshold: 0.4, // Блок считается видимым, если 40% его площади в области видимости
+    threshold: 1, // Блок считается видимым, если 40% его площади в области видимости
+  });
+
+  useEffect(() => {
+    if (intersection?.isIntersecting) {
+      navigationStore.setActiveBlockId(block.id);
+    }
+  }, [intersection?.isIntersecting, block.id]);
+
+  return (
+    <div
+      id={`block-${block.id}`}
+      ref={intersectionRef}
+      style={{ height: '400px' }}
+    >
+      <h2>{block.title}</h2>
+      <p>{block.content}</p>
+    </div>
+  );
+});
+
+// import {RefObject, useEffect, useRef} from 'react';
+// import { observer } from 'mobx-react-lite';
+// import { useIntersection } from 'react-use';
+// import { navigationStore } from '../store/navigationStore';
+// import {useOutletContext} from "react-router-dom";
+//
+// type Block = {
+//   id: number;
+//   title: string;
+//   content: string;
+// };
+//
+// export const SplitPage = observer(() => {
+//   const blocks = useOutletContext<Block[]>(); // Получаем blocks из Outlet
+//
+//   return (
+//     <main>
+//       {blocks.map((block) => (
+//         <BlockItem key={block.id} block={block} />
+//       ))}
+//     </main>
+//   );
+// });
+//
+// const BlockItem = observer(({ block }: { block: Block }) => {
+//   const intersectionRef = useRef<HTMLDivElement | null>(null);
+//   const intersection = useIntersection(intersectionRef as RefObject<HTMLElement>, {
+//     // threshold: 1,
+//     threshold: 0.5, // Блок считается видимым, если 50% его площади в области видимости
+//     rootMargin: '-50px 0px 0px 0px', // Учитываем высоту header (50px)
+//   });
+//
+//   useEffect(() => {
+//     // Активируем блок только если он виден, нет скролла и это не начальная загрузка
+//     if (
+//       intersection?.isIntersecting &&
+//       !navigationStore.isScrolling &&
+//       !navigationStore.isInitialLoad
+//     ) {
+//       navigationStore.setActiveBlockId(block.id);
+//     }
+//   }, [intersection?.isIntersecting, block.id]);
+//
+//   // Определяем стиль рамки: красный для активного блока, синий для неактивного
+//   const borderStyle =
+//     navigationStore.activeBlockId === block.id ? '1px solid red' : '1px solid blue';
+//   return (
+//     <div
+//       id={`block-${block.id}`}
+//       ref={intersectionRef}
+//       style={{ height: '300px', border: borderStyle }}
+//       // className={navigationStore.activeBlockId === block.id ? 'active-block' : ''}
+//     >
+//       <h2>{block.title}</h2>
+//       <p>{block.content}</p>
+//     </div>
+//   );
+// });
