@@ -2,7 +2,6 @@ import { observer } from 'mobx-react-lite';
 import { navigationStore } from '../store/navigationStore';
 import s from './LayoutSplit.module.scss';
 import {Outlet} from "react-router-dom";
-import {useEffect} from "react";
 
 type Block = {
   id: number;
@@ -20,35 +19,50 @@ const blocks: Block[] = [
 ];
 
 export const LayoutSplit = observer(() => {
+  // const handleNavClick = (id: number) => {
+  //   const blockElement = document.getElementById(`block-${id}`);
+  //   if (blockElement) {
+  //     const headerHeight = 50; // Высота header
+  //     const blockPosition = blockElement.getBoundingClientRect().top + window.scrollY - headerHeight;
+  //
+  //     // Устанавливаем флаг скроллинга и активный блок
+  //     navigationStore.setIsScrolling(true);
+  //     navigationStore.setActiveBlockId(id);
+  //
+  //     // Скроллим к блоку с учетом header
+  //     window.scrollTo({ top: blockPosition, behavior: 'smooth' });
+  //
+  //     // После завершения скролла (через 1 секунду) включаем автоматическую активацию обратно
+  //     setTimeout(() => navigationStore.setIsScrolling(false), 1000);
+  //   }
+  // };
+  //
+  // // Это нужно чтобы первым активным элементом был все-таки 1 блок, а не 3ый (если этого не сделать, то будет первым активынм Блок 3)
+  // useEffect(() => {
+  //   // Сбрасываем isInitialLoad при первом скролле
+  //   const handleFirstScroll = () => {
+  //     navigationStore.setIsInitialLoad(false);
+  //     window.removeEventListener('scroll', handleFirstScroll);
+  //   };
+  //
+  //   window.addEventListener('scroll', handleFirstScroll);
+  //   return () => window.removeEventListener('scroll', handleFirstScroll);
+  // }, []);
+
+  // Обработчик клика по элементу навигации
   const handleNavClick = (id: number) => {
     const blockElement = document.getElementById(`block-${id}`);
     if (blockElement) {
       const headerHeight = 50; // Высота header
       const blockPosition = blockElement.getBoundingClientRect().top + window.scrollY - headerHeight;
 
-      // Устанавливаем флаг скроллинга и активный блок
-      navigationStore.setIsScrolling(true);
+      // Устанавливаем активный блок
       navigationStore.setActiveBlockId(id);
 
-      // Скроллим к блоку с учетом header
+      // Прокручиваем к блоку
       window.scrollTo({ top: blockPosition, behavior: 'smooth' });
-
-      // После завершения скролла (через 1 секунду) включаем автоматическую активацию обратно
-      setTimeout(() => navigationStore.setIsScrolling(false), 1000);
     }
   };
-
-  // Это нужно чтобы первым активным элементом был все-таки 1 блок, а не 3ый (если этого не сделать, то будет первым активынм Блок 3)
-  useEffect(() => {
-    // Сбрасываем isInitialLoad при первом скролле
-    const handleFirstScroll = () => {
-      navigationStore.setIsInitialLoad(false);
-      window.removeEventListener('scroll', handleFirstScroll);
-    };
-
-    window.addEventListener('scroll', handleFirstScroll);
-    return () => window.removeEventListener('scroll', handleFirstScroll);
-  }, []);
 
   return (
     <div>
@@ -81,4 +95,4 @@ export const LayoutSplit = observer(() => {
       </div>
     </div>
   );
-});
+})

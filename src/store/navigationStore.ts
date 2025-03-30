@@ -3,8 +3,8 @@ import { makeAutoObservable } from 'mobx';
 
 class NavigationStore {
   activeBlockId: number | null = 1; // Сделаем активынм 1 блок
-  isScrolling: boolean = false;
-  isInitialLoad: boolean = true; // Флаг начальной загрузки
+  // isScrolling: boolean = false;
+  // isInitialLoad: boolean = true; // Флаг начальной загрузки
 
   constructor() {
     makeAutoObservable(this);
@@ -14,13 +14,13 @@ class NavigationStore {
     this.activeBlockId = id;
   }
 
-  setIsScrolling(scrolling: boolean) {
-    this.isScrolling = scrolling;
-  }
-
-  setIsInitialLoad(initialLoad: boolean) {
-    this.isInitialLoad = initialLoad;
-  }
+  // setIsScrolling(scrolling: boolean) {
+  //   this.isScrolling = scrolling;
+  // }
+  //
+  // setIsInitialLoad(initialLoad: boolean) {
+  //   this.isInitialLoad = initialLoad;
+  // }
 }
 
 export const navigationStore = new NavigationStore();
