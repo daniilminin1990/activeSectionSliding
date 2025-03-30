@@ -1,8 +1,6 @@
-import { observer } from 'mobx-react-lite';
-import { navigationStore } from '../store/navigationStore';
 import s from './LayoutSplit.module.scss';
 import {Outlet} from "react-router-dom";
-import {useEffect} from "react";
+import {useEffect, useRef, useState} from "react";
 
 type Block = {
   id: number;
@@ -11,7 +9,7 @@ type Block = {
   additionalContent?: string;
 };
 
-const blocks: Block[] = [
+export const blocks: Block[] = [
   { id: 1, title: 'Блок 1', content: 'Содержимое блока 1', additionalContent: 'Дополнительное содержимое блока 1' },
   { id: 2, title: 'Блок 2', content: 'Содержимое блока 2', additionalContent: 'Дополнительное содержимое блока 2'  },
   { id: 3, title: 'Блок 3', content: 'Содержимое блока 3', additionalContent: 'Дополнительное содержимое блока 3'  },
@@ -19,66 +17,80 @@ const blocks: Block[] = [
   { id: 5, title: 'Блок 5', content: 'Содержимое блока 5', additionalContent: 'Дополнительное содержимое блока 5'  },
 ];
 
-export const LayoutSplit = observer(() => {
-  const handleNavClick = (id: number) => {
-    const blockElement = document.getElementById(`block-${id}`);
+export const LayoutSplit = () => {
+  // Состояние для активного блока
+  const [activeBlock, setActiveBlock] = useState<number | null>(null);
+  // Ref для main, чтобы отслеживать скролл
+  const mainRef = useRef<HTMLElement>(null);
+
+  // Обработчик клика по элементу в nav
+  const handleNavClick = (index: number) => {
+    const blockElement = document.getElementById(`block-${index}`);
     if (blockElement) {
-      const headerHeight = 50; // Высота header
-      const blockPosition = blockElement.getBoundingClientRect().top + window.scrollY - headerHeight;
-
-      // Устанавливаем флаг скроллинга и активный блок
-      navigationStore.setIsScrolling(true);
-      navigationStore.setActiveBlockId(id);
-
-      // Скроллим к блоку с учетом header
-      window.scrollTo({ top: blockPosition, behavior: 'smooth' });
-
-      // После завершения скролла (через 1 секунду) включаем автоматическую активацию обратно
-      setTimeout(() => navigationStore.setIsScrolling(false), 1000);
+      blockElement.scrollIntoView({ behavior: "smooth" });
+      setActiveBlock(index); // Устанавливаем активный блок при клике
     }
   };
 
-  // Это нужно чтобы первым активным элементом был все-таки 1 блок, а не 3ый (если этого не сделать, то будет первым активынм Блок 3)
-  useEffect(() => {
-    // Сбрасываем isInitialLoad при первом скролле
-    const handleFirstScroll = () => {
-      navigationStore.setIsInitialLoad(false);
-      window.removeEventListener('scroll', handleFirstScroll);
-    };
+  // Обработчик скроллинга в main
+  const handleScroll = () => {
+    if (mainRef.current) {
+      const mainTop = mainRef.current.getBoundingClientRect().top;
+      const mainHeight = mainRef.current.clientHeight;
 
-    window.addEventListener('scroll', handleFirstScroll);
-    return () => window.removeEventListener('scroll', handleFirstScroll);
+      blocks.forEach((_, index) => {
+        const blockElement = document.getElementById(`block-${index}`);
+        if (blockElement) {
+          const blockRect = blockElement.getBoundingClientRect();
+          const blockTop = blockRect.top - mainTop;
+          const blockBottom = blockRect.bottom - mainTop;
+
+          // Проверяем, находится ли блок в видимой области
+          if (blockTop < mainHeight / 2 && blockBottom > mainHeight / 2) {
+            setActiveBlock(index);
+          }
+        }
+      });
+    }
+  };
+
+  // Добавляем слушатель скролла
+  useEffect(() => {
+    const mainElement = mainRef.current;
+    if (mainElement) {
+      mainElement.addEventListener("scroll", handleScroll);
+      return () => mainElement.removeEventListener("scroll", handleScroll);
+    }
   }, []);
 
   return (
     <div>
-      <header style={{position: 'sticky', top: 0, height: '50px', zIndex: 99, backgroundColor: 'black'}}>
+      <header>
         <p>Some header content</p>
       </header>
       <div className={s.container}>
         <nav className={`${s.sidebar} ${s.navContent}`}>
-          {blocks.map((block) => (
+          {blocks.map((block, index) => (
             <p
-              key={block.id}
-              onClick={() => handleNavClick(block.id)}
+              key={index}
+              onClick={() => handleNavClick(index)}
               style={{
-                cursor: 'pointer',
-                fontWeight: navigationStore.activeBlockId === block.id ? 'bold' : 'normal',
-                color: navigationStore.activeBlockId === block.id ? 'blue' : 'black',
+                cursor: "pointer",
+                fontWeight: activeBlock === index ? "bold" : "normal",
+                color: activeBlock === index ? "blue" : "black",
               }}
             >
               {block.title}
             </p>
           ))}
         </nav>
-        <main className={s.mainContent}>
-          {/*<SplitPage blocks={blocks}/>*/}
-          <Outlet context={blocks}/>
+        <main ref={mainRef} className={s.mainContent} style={{ overflowY: "auto", maxHeight: "100vh" }}>
+          <Outlet />
         </main>
         <aside className={`${s.sidebar} ${s.additionalData}`}>
-          {blocks.find(el => el.id === navigationStore.activeBlockId)?.additionalContent}
+          <p>additional data</p>
         </aside>
       </div>
     </div>
   );
-});
+};
